@@ -1,15 +1,15 @@
 class Rocket {
   PVector pos, vel, acc, size;
-  final float maxFuel = 128, mass=26000, gravity = 9.8/30, I_CM=5000000, I_leg=100000000, F_thruster=5880, F_merlin=845000;
+  final float maxFuel = 128, mass = 26000, gravity = 9.8 / 30, I_CM = 5000000, I_leg = 100000000, F_thruster = 5880, F_merlin = 845000;
   float angle = 0, omega = 0, alpha = 0, fuel, fitness=0;
-  boolean exploded = false, landed=false, merlin = false, rightThruster = false, leftThruster = false, legs = false, isBest=false;
+  boolean exploded = false, landed = false, merlin = false, rightThruster = false, leftThruster = false, legs = false, isBest = false;
   FlightComputer computer;
 
   Rocket(int computerSize) {    
     loadImages();
     computer = new FlightComputer(computerSize);
     size = new PVector(body.width, body.height);
-    pos = new PVector(width/2-22, 0);
+    pos = new PVector(width / 2 - 22, 0);
     vel = new PVector(0, 0);
     acc = new PVector(0, gravity);
     fuel = maxFuel;
@@ -50,31 +50,33 @@ class Rocket {
 
     // method 2: kind of LSRL inversed
     fitness += pow(droneShip.distanceFromTarget(pos), 2);
-    println(pow(droneShip.distanceFromTarget(pos), 2));
+    //println(pow(droneShip.distanceFromTarget(pos), 2));
     fitness += pow(vel.y, 2);
-    println(pow(vel.y, 2));
+    //println(pow(vel.y, 2));
     fitness += pow(vel.x, 2);
-    println(pow(vel.x, 2));
+    //println(pow(vel.x, 2));
     fitness += pow(omega, 2);
-    println(pow(omega, 2));
+    //println(pow(omega, 2));
     fitness += pow(angle, 2);
-    println(pow(angle, 2));
+    //println(pow(angle, 2));
     //fitness += pow(maxFuel - fuel, 2);
     //println(pow(maxFuel - fuel, 2));
-    println(fitness);
-    fitness = 1/fitness;
-    println(fitness);
-    println();
+    //println(fitness);
+    fitness = 1 / fitness;
+    //println(fitness);
+    //println();
   }
 
   void tick() {
-    if (computer.engine[computer.step] == 1)
-      merlin=true;
+    if (computer.engine[computer.step] == 1) {
+      merlin = true;
+    }
 
-    if (computer.thrusters[computer.step] == -1)
-      leftThruster=true;
-    else if (computer.thrusters[computer.step] == 1)
-      rightThruster=true;
+    if (computer.thrusters[computer.step] == -1) {
+      leftThruster = true;
+    } else if (computer.thrusters[computer.step] == 1) {
+      rightThruster = true;
+    }
     computer.step++;
   }
 
@@ -83,32 +85,35 @@ class Rocket {
     if (!(landed || exploded)) {
       rightThruster = false;
       leftThruster = false;
-      merlin=false;
-      if (computer.step<computer.engine.length)
+      merlin = false;
+      if (computer.step < computer.engine.length) {
         tick();
+      }
 
       updateFuel();
 
       // Merlin engine
-      if (merlin)
-        acc = PVector.fromAngle(angle-PI/2).setMag(0.5*F_merlin/mass/30);
-      else
+      if (merlin) {
+        acc = PVector.fromAngle(angle - PI / 2).setMag(0.5 * F_merlin / mass / 30);
+      } else {
         acc = new PVector();
+      }
 
       // Cold gas thrusters
-      if (rightThruster)
-        alpha-=F_thruster/I_CM/30;
-      else if (leftThruster)
-        alpha+=F_thruster/I_CM/30;
-      else
+      if (rightThruster) {
+        alpha -= F_thruster / I_CM / 30;
+      } else if (leftThruster) {
+        alpha += F_thruster / I_CM / 30;
+      } else {
         alpha = 0;
+      }
 
       acc.y += gravity;
 
       if (!legs) {
-        int dist = (int)((pos.y+size.y/2-16 - height*0.7)*((float)legPics.length/(height*0.2)));
-        int num = dist <0 ? 0 : dist;
-        legPic = num>=legPics.length ? legPics.length-1 : num;
+        int dist = (int) ((pos.y + size.y / 2 - 16 - height * 0.7) * ((float) legPics.length / (height * 0.2)));
+        int num = dist < 0 ? 0 : dist;
+        legPic = num >= legPics.length ? legPics.length - 1 : num;
         //if (legPic==legPics.length-1)
         //legs=true;
       }
@@ -116,10 +121,11 @@ class Rocket {
       move();
     } else {
       acc = new PVector();
-      if (landed)
-        pos.y = droneShip.pos.y-size.y/2+16;
-      else
-        pos.y = height-size.y/2+16;
+      if (landed) {
+        pos.y = droneShip.pos.y - size.y / 2 + 16;
+      } else {
+        pos.y = height - size.y / 2 + 16;
+      }
     }
   }
 
@@ -128,38 +134,44 @@ class Rocket {
     vel.add(acc);
     omega += alpha;
     angle += omega;
-    angle %= 2*PI;
+    angle %= 2 * PI;
   }
 
   void touchdown() {
-    if (droneShip.distanceFromTarget(pos)<32 && pos.y+size.y/2-16 > droneShip.pos.y) {
-      if ((0.5 * mass * vel.x*vel.x + 0.5 * I_leg * omega*omega >= mass * 9.8 * 1.5) || abs(angle) > PI/20 || vel.y > 5.0/30)
+    if (droneShip.distanceFromTarget(pos) < 32 && pos.y + size.y / 2 - 16 > droneShip.pos.y) {
+      if ((0.5 * mass * vel.x * vel.x + 0.5 * I_leg * omega * omega >= mass * 9.8 * 1.5) || abs(angle) > PI / 20 || vel.y > 5.0 / 30) {
         exploded = true;
+      }
       landed=true;
-    } else if (droneShip.distanceFromTarget(pos)>32 && pos.y+size.y/2-16 > height) 
+    } else if (droneShip.distanceFromTarget(pos) > 32 && pos.y + size.y / 2 - 16 > height) {
       exploded=true;
+    }
   }
 
   void updateFuel() {
-    if (fuel>0) {
-      if (merlin)
+    if (fuel > 0) {
+      if (merlin) {
         fuel--;
-      if (leftThruster)
-        fuel-=0.1;
-      if (rightThruster)
-        fuel-=0.1;
+      }
+      if (leftThruster) {
+        fuel -= 0.1;
+      }
+      if (rightThruster) {
+        fuel -= 0.1;
+      }
     } else {
-      merlin=false;
-      leftThruster=false;
-      rightThruster=false;
+      merlin = false;
+      leftThruster = false;
+      rightThruster = false;
       fuel = 0;
     }
   }
 
   void show() {
     showRocket();
-    if (isBest)
+    if (isBest) {
       showFuel();
+    }
   }
 
   void showRocket() {
@@ -168,17 +180,20 @@ class Rocket {
     rotate(angle);
 
     imageMode(CENTER);
-    if (exploded)
+    if (exploded) {
       image(explosion, 0, -10, explosion.width, explosion.height);
-    else {
+    } else {
       image(body, 0, 0, size.x, size.y);
       image(legPics[legPic], 0, 0, size.x, size.y);
-      if (merlin)
+      if (merlin) {
         image(flame, 0, 0, size.x, size.y);
-      if (leftThruster)
+      }
+      if (leftThruster) {
         image(puffLeft, 0, 0, size.x, size.y);
-      if (rightThruster)
+      }
+      if (rightThruster) {
         image(puffRight, 0, 0, size.x, size.y);
+      }
     }
 
     popMatrix();
@@ -187,12 +202,12 @@ class Rocket {
   void showFuel() {
     fill(0, 200, 0);
     noStroke();
-    rect(width/50 + width/20, height*0.3 + height*0.4, -width/20, -height*0.4 * (fuel/maxFuel));
+    rect(width / 50 + width / 20, height * 0.3 + height * 0.4, - width / 20, - height * 0.4 * (fuel / maxFuel));
 
     noFill();
     stroke(0);
     strokeWeight(3);
-    rect(width/50, height*0.3, width/20, height*0.4);
+    rect(width / 50, height * 0.3, width / 20, height * 0.4);
     strokeWeight(1);
   }
 
@@ -207,8 +222,9 @@ class Rocket {
     puffLeft = loadImage("resources/puff_left.png");
     explosion = loadImage("resources/explosion/explosion.png");
     legPics = new PImage[18];
-    for (int i=0; i<legPics.length; i++)
-      legPics[i] = loadImage("resources/legs/legs_"+i+".png");
+    for (int i = 0; i < legPics.length; i++){
+      legPics[i] = loadImage("resources/legs/legs_" + i + ".png");
+    }
   }
 
   Rocket clone() {
@@ -220,20 +236,20 @@ class Rocket {
   void showDebug() {
     strokeWeight(5);
     stroke(255, 0, 0); // vel
-    line(pos.x-size.x/2, pos.y-size.y/2, pos.x-size.x/2+vel.x*10, pos.y-size.y/2+vel.y*10);
+    line(pos.x - size.x / 2, pos.y - size.y / 2, pos.x - size.x / 2 + vel.x * 10, pos.y - size.y / 2 + vel.y * 10);
     stroke(0, 255, 0); // acc
-    line(pos.x+size.x/2, pos.y-size.y/2, pos.x+size.x/2+acc.x*100, pos.y-size.y/2+acc.y*100);
+    line(pos.x + size.x / 2, pos.y - size.y / 2, pos.x + size.x / 2 + acc.x * 100, pos.y - size.y / 2 + acc.y * 100);
     fill(0);
-    text(this.toString(), 100, 50);
+    text(this.toString(), 100, 100);
   }
 
   String toString() {
-    String str = "pos:\t\t"+pos;
-    str += "\nvel:\t\t"+vel;
-    str += "\nangle:\t\t"+angle;
-    str += "\nomega\t\t"+omega;
-    str += "\nmaxFuel:\t\t"+maxFuel;
-    str += "\nfuel:\t\t"+fuel;
+    String str = "pos:\t\t" + pos;
+    str += "\nvel:\t\t" + vel;
+    str += "\nangle:\t\t" + angle;
+    str += "\nomega\t\t" + omega;
+    str += "\nmaxFuel:\t\t" + maxFuel;
+    str += "\nfuel:\t\t" + fuel;
     return str;
   }
 }
